@@ -1,7 +1,5 @@
 # find-github
 
-# Find GitHub
-
 A simple web application to search for GitHub profiles and display their public information. Enter a username to fetch and view details like their avatar, bio, follower count, and more.
 
 ## ✨ Features
