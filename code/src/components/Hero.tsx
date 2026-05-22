@@ -50,7 +50,7 @@ export default function Hero() {
         setShowResults(true)
 
         try {
-            const fetchURL = `/api/users?user=${user}`
+            const fetchURL = `/api/users?user=${encodeURIComponent(user)}`
 
             const response = await fetch(fetchURL)
 
