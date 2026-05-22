@@ -5,6 +5,8 @@ import react from '@astrojs/react';
 
 import tailwindcss from '@tailwindcss/vite';
 
+import vercel from '@astrojs/vercel';
+
 // https://astro.build/config
 export default defineConfig({
   integrations: [react()],
@@ -17,5 +19,7 @@ export default defineConfig({
     schema: {
       GITHUB_API_PAT: envField.string({ context: 'server', access: 'secret' })
     }
-  }
+  },
+
+  adapter: vercel()
 });
