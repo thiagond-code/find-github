@@ -1,5 +1,7 @@
 # find-github
 
+Website: [Find GitHub](https://findgithub-hazel.vercel.app/)
+
 A simple web application to search for GitHub profiles and display their public information. Enter a username to fetch and view details like their avatar, bio, follower count, and more.
 
 ## ✨ Features
@@ -50,3 +52,4 @@ Follow these instructions to get a copy of the project up and running on your lo
     ```
 
 5.  Open your browser and navigate to `http://localhost:4321` to see the application running.
+
