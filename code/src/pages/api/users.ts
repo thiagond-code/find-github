@@ -122,6 +122,8 @@ export const GET: APIRoute = async ({ url }) => {
                 language: repo.language,
                 homepage: repo.homepage,
             }))
+        } else {
+            repoError = `Failed to fetch repositories (${reposResponse.status})`
         }
     } catch (error) {
         console.warn(error)
