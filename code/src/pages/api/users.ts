@@ -2,6 +2,7 @@ export const prerender = false
 
 import type { APIRoute } from "astro"
 import Bottleneck from "bottleneck"
+import { GITHUB_TOKEN } from "astro:env/server"
 
 const BASE_URL = "https://api.github.com/users"
 
@@ -53,7 +54,13 @@ const fetchData = async (
 ) => {
     const url = changeURL(user, type)
 
-    const response = await fetch(url)
+    const response = await fetch(url, {
+        headers: {
+            Authorization: `Bearer ${GITHUB_TOKEN}`,
+            Accept: 'application/vnd.github+json',
+            "X-GitHub-Api-Version": "2026-03-10"
+        }
+    })
 
     if (!response.ok) {
         throw new Error(
