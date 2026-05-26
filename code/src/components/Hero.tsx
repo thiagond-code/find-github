@@ -1,5 +1,6 @@
 import type { ChangeEvent, SubmitEvent } from "react"
 import { useState } from "react"
+
 import CheckedIcon from "./utils/Checked"
 import StarIcon from "./utils/Star"
 
@@ -24,55 +25,84 @@ type Repo = {
     stars: number
     licenseName: string | null
     watchers: number
-    description: string
-    language: string
-    homepage: string
+    description: string | null
+    language: string | null
+    homepage: string | null
 }
 
 type APIResponse = {
     user: User
     repos: Repo[] | null
+    repoError?: string | null
 }
 
 export default function Hero() {
-
     const [user, setUser] = useState("")
-    const [showResults, setShowResults] = useState(false)
-    const [userData, setUserData] = useState<APIResponse | null>(null)
+    const [userData, setUserData] =
+        useState<APIResponse | null>(null)
 
-    const handleUserInput = (e: ChangeEvent<HTMLInputElement>) => {
+    const [loading, setLoading] =
+        useState(false)
+
+    const [error, setError] =
+        useState<string | null>(null)
+
+    const handleUserInput = (
+        e: ChangeEvent<HTMLInputElement>
+    ) => {
         setUser(e.target.value)
     }
 
-    const fetchUser = async (e: SubmitEvent<HTMLFormElement>) => {
+    const fetchUser = async (
+        e: SubmitEvent<HTMLFormElement>
+    ) => {
         e.preventDefault()
 
-        setShowResults(true)
+        setLoading(true)
+        setError(null)
+        setUserData(null)
 
         try {
-            const fetchURL = `/api/users?user=${encodeURIComponent(user)}`
+            const fetchURL = `/api/users?user=${encodeURIComponent(
+                user
+            )}`
 
             const response = await fetch(fetchURL)
 
             const data = await response.json()
 
+            if (!response.ok) {
+                throw new Error(
+                    data.error || "Request failed"
+                )
+            }
+
             setUserData(data)
-        } catch (error) {
-            console.error(error)
+        } catch (err) {
+            setError(
+                err instanceof Error
+                    ? err.message
+                    : "Unknown error"
+            )
+        } finally {
+            setLoading(false)
         }
     }
 
     return (
         <section>
-            <div className='bg-gray-600 text-gray-200 font-medium flex flex-col items-center space-y-4 py-8'>
-                <h2 className='text-4xl font-bold'>
+            {/* HEADER */}
+            <div className="bg-gray-600 text-gray-200 font-medium flex flex-col items-center space-y-4 py-8">
+                <h2 className="text-4xl font-bold">
                     Imagine a world of coders
                 </h2>
 
-                <p>Discover someone new on GitHub</p>
+                <p>
+                    Discover someone new on GitHub
+                </p>
 
                 <form
-                    method="get"
+                    method=""
                     className="space-x-4 py-6"
                     onSubmit={fetchUser}
                 >
@@ -86,94 +116,207 @@ export default function Hero() {
 
                     <button
                         type="submit"
-                        className="bg-indigo-600 px-4 py-2 rounded-sm cursor-pointer hover:bg-indigo-700 delay-100 duration-400 ease-in-out"
+                        disabled={loading}
+                        className="bg-indigo-600 px-4 py-2 rounded-sm cursor-pointer hover:bg-indigo-700 disabled:opacity-50"
                     >
-                        Enviar
+                        {loading
+                            ? "Loading..."
+                            : "Enviar"}
                     </button>
                 </form>
             </div>
 
-            {showResults && userData && (
-                <div className='py-8 bg-green-600 text-white font-medium flex flex-col items-center text-center gap-4'>
+            {/* ERROR */}
+            {error && (
+                <div className="py-6 text-center text-red-600 font-bold">
+                    {error}
+                </div>
+            )}
 
-                    <h3 className='text-2xl'>Results</h3>
+            {/* USER RESULTS */}
+            {userData && (
+                <div className="py-8 bg-green-600 text-white font-medium flex flex-col items-center text-center gap-4">
+                    <h3 className="text-2xl">
+                        Results
+                    </h3>
 
                     {userData.user.avatar && (
                         <img
                             src={userData.user.avatar}
                             width={200}
-                            height={300}
+                            height={200}
+                            alt={`${userData.user.username} avatar`}
+                            className="rounded-full"
                         />
                     )}
 
-                    {userData.user.followers && (
-                        <div className='flex gap-2'>
-                            <StarIcon />
-                            <p>{userData.user.followers}</p>
+                    <div className="flex gap-2 items-center">
+                        <StarIcon />
+
+                        <p>
+                            {
+                                userData.user
+                                    .followers
+                            }{" "}
+                            followers
+                        </p>
+                    </div>
+
+                    {userData.user.personName && (
+                        <div className="flex gap-2 items-center">
+                            <h4 className="text-2xl">
+                                {userData.user.site ? (
+                                    <a
+                                        href={
+                                            userData
+                                                .user
+                                                .site
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:underline"
+                                    >
+                                        {
+                                            userData
+                                                .user
+                                                .personName
+                                        }
+                                    </a>
+                                ) : (
+                                    userData.user
+                                        .personName
+                                )}
+                            </h4>
+
+                            {userData.user
+                                .hireable && (
+                                    <CheckedIcon />
+                                )}
                         </div>
                     )}
 
-                    {userData.user.personName && (
-                        <h4 className={`text-2xl ${userData.user.site && 'text-blue-100'}`}>
-
-                            {userData.user.site ? (
-                                <div className='flex gap-2'>
-
-                                    <a href={userData.user.site} target="_blank" rel="noopener noreferrer">
-                                        {userData.user.personName}
-                                    </a>
-
-                                    {userData.user.hireable && (
-                                        <CheckedIcon />
-                                    )}
-
-                                </div>
-                            ) : (
-                                userData.user.personName
-                            )}
-
-                        </h4>
-                    )}
-
-                    {userData.user.username && (
-                        <p>
-                            <a href={userData.user.URL} target="_blank" rel="noopener noreferrer">
-                                @{userData.user.username}
-                            </a>
-                        </p>
-                    )}
+                    <p>
+                        <a
+                            href={
+                                userData.user.URL
+                            }
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:underline"
+                        >
+                            @
+                            {
+                                userData.user
+                                    .username
+                            }
+                        </a>
+                    </p>
 
                     {userData.user.bio && (
-                        <p className='text-lg'>
-                            {userData.user.bio}
+                        <p className="text-lg max-w-2xl">
+                            {
+                                userData.user
+                                    .bio
+                            }
                         </p>
                     )}
 
                     {userData.user.country && (
-                        <p>{userData.user.country}</p>
+                        <p>
+                            {
+                                userData.user
+                                    .country
+                            }
+                        </p>
                     )}
-
                 </div>
             )}
-            {showResults && userData && userData.repos && (
-                <div className='py-8 bg-blue-600 text-white font-medium flex flex-col items-center text-center gap-4'>
-                    
-                    <h3 className='text-2xl'>Repos</h3>
-                    {userData.repos.map((repo) => (
-                        <div key={repo.repoName} className='bg-blue-500 p-4 rounded-sm w-1/2'>
-                            <h4 className='text-xl font-bold'>{repo.repoName}</h4>
-                            <p>{repo.description}</p>
-                            <p>Language: {repo.language}</p>
-                            <p>Stars: {repo.stars}</p>
-                            <p>Watchers: {repo.watchers}</p>
-                            <p>License: {repo.licenseName || 'No license'}</p>
-                            {repo.homepage && (
-                                <a href={repo.homepage} target="_blank" rel="noopener noreferrer">
-                                    Visit homepage
-                                </a>
+
+            {/* REPOS */}
+            {userData && (
+                <div className="py-8 bg-blue-600 text-white font-medium flex flex-col items-center text-center gap-4">
+                    <h3 className="text-2xl">
+                        Repositories
+                    </h3>
+
+                    {userData.repoError ? (
+                        <p className="text-xl text-red-200">
+                            {
+                                userData.repoError
+                            }
+                        </p>
+                    ) : userData.repos &&
+                        userData.repos.length >
+                        0 ? (
+                        <div className="flex flex-col gap-4 w-full items-center">
+                            {userData.repos.map(
+                                (repo) => (
+                                    <div
+                                        key={
+                                            repo.repoName
+                                        }
+                                        className="p-4 rounded-sm w-1/2 bg-blue-700"
+                                    >
+                                        <h4 className="text-xl font-bold">
+                                            {
+                                                repo.repoName
+                                            }
+                                        </h4>
+
+                                        <p>
+                                            {repo.description ||
+                                                "No description"}
+                                        </p>
+
+                                        <p>
+                                            Language:{" "}
+                                            {repo.language ||
+                                                "Unknown"}
+                                        </p>
+
+                                        <p>
+                                            Stars:{" "}
+                                            {
+                                                repo.stars
+                                            }
+                                        </p>
+
+                                        <p>
+                                            Watchers:{" "}
+                                            {
+                                                repo.watchers
+                                            }
+                                        </p>
+
+                                        <p>
+                                            License:{" "}
+                                            {repo.licenseName ||
+                                                "No license"}
+                                        </p>
+
+                                        {repo.homepage && (
+                                            <a
+                                                href={
+                                                    repo.homepage
+                                                }
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-200 hover:underline"
+                                            >
+                                                Visit
+                                                homepage
+                                            </a>
+                                        )}
+                                    </div>
+                                )
                             )}
                         </div>
-                    ))}
+                    ) : (
+                        <p className="text-xl">
+                            No repositories
+                            found
+                        </p>
+                    )}
                 </div>
             )}
         </section>
